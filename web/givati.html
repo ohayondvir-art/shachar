@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מח"ט גבעתי | לוח בקרה רלש</title>
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2035;
+            --bg-card-hover: #1e2a45;
+            --accent-blue: #1a73e8;
+            --accent-blue-light: #4a9af5;
+            --accent-green: #28a745;
+            --accent-orange: #fd7e14;
+            --accent-red: #dc3545;
+            --accent-yellow: #ffc107;
+            --accent-purple: #6f42c1;
+            --text-primary: #e8eaf6;
+            --text-secondary: #9aa3b8;
+            --text-muted: #5c6784;
+            --border: #2a3350;
+            --border-light: #1e2a45;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --sidebar-width: 240px;
+            --header-height: 64px;
+            --nav-height: 68px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Noto Sans Hebrew', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            direction: rtl;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Layout ── */
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            position: fixed;
+            right: 0; top: 0; bottom: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-logo-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+
+        .sidebar-logo-text h1 { font-size: 14px; font-weight: 700; }
+        .sidebar-logo-text p { font-size: 11px; color: var(--text-secondary); }
+
+        .sidebar-nav {
+            flex: 1; padding: 16px 12px;
+            display: flex; flex-direction: column; gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 14px; border-radius: var(--radius-sm);
+            cursor: pointer; transition: all 0.2s;
+            color: var(--text-secondary); font-size: 14px; font-weight: 500;
+            border: none; background: transparent;
+            width: 100%; text-align: right; font-family: inherit;
+        }
+
+        .nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
+        .nav-item.active {
+            background: rgba(26,115,232,0.15);
+            color: var(--accent-blue-light);
+            border: 1px solid rgba(26,115,232,0.3);
+        }
+
+        .nav-icon { font-size: 18px; flex-shrink: 0; }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            font-size: 12px; color: var(--text-muted);
+        }
+
+        /* ── Main ── */
+        .main-content {
+            margin-right: var(--sidebar-width);
+            flex: 1; padding: 28px;
+            padding-bottom: 40px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .page-title { font-size: 24px; font-weight: 700; }
+        .page-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 12px; font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase; letter-spacing: 0.6px;
+            margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        /* ── KPI ── */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px; margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px; position: relative; overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .kpi-card:hover { transform: translateY(-2px); }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute; top: 0; right: 0;
+            width: 4px; height: 100%;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .kpi-card.blue::before  { background: var(--accent-blue); }
+        .kpi-card.green::before { background: var(--accent-green); }
+        .kpi-card.orange::before{ background: var(--accent-orange); }
+        .kpi-card.red::before   { background: var(--accent-red); }
+
+        .kpi-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+        .kpi-value { font-size: 32px; font-weight: 700; line-height: 1; }
+        .kpi-card.blue .kpi-value   { color: var(--accent-blue-light); }
+        .kpi-card.green .kpi-value  { color: var(--accent-green); }
+        .kpi-card.orange .kpi-value { color: var(--accent-orange); }
+        .kpi-card.red .kpi-value    { color: var(--accent-red); }
+        .kpi-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+        .kpi-icon { position: absolute; bottom: 14px; left: 16px; font-size: 28px; opacity: 0.12; }
+
+        /* ── Dashboard grid ── */
+        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+
+        /* ── Timeline ── */
+        .timeline { display: flex; flex-direction: column; }
+
+        .timeline-item {
+            display: flex; gap: 14px;
+            padding: 10px 0; position: relative;
+        }
+
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute; right: 29px;
+            top: 38px; bottom: 0;
+            width: 2px; background: var(--border);
+        }
+
+        .timeline-time {
+            font-size: 12px; color: var(--text-muted);
+            width: 46px; text-align: center; flex-shrink: 0; padding-top: 4px;
+        }
+
+        .timeline-dot {
+            width: 12px; height: 12px; border-radius: 50%;
+            flex-shrink: 0; margin-top: 6px; position: relative; z-index: 1;
+        }
+
+        .timeline-dot.meeting   { background: var(--accent-blue); }
+        .timeline-dot.training  { background: var(--accent-green); }
+        .timeline-dot.visit     { background: var(--accent-orange); }
+        .timeline-dot.operation { background: var(--accent-red); }
+        .timeline-dot.admin     { background: var(--accent-purple); }
+
+        .timeline-title { font-size: 14px; font-weight: 500; }
+        .timeline-meta  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        /* ── Task list (dashboard) ── */
+        .task-list { display: flex; flex-direction: column; gap: 8px; }
+
+        .task-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .task-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .task-dot.critical    { background: var(--accent-red); }
+        .task-dot.high        { background: var(--accent-orange); }
+        .task-dot.normal      { background: var(--accent-blue); }
+        .task-dot.low         { background: var(--text-muted); }
+        .task-item-title { flex: 1; font-size: 13px; }
+        .task-item-due   { font-size: 11px; color: var(--text-muted); }
+
+        /* ── Unit readiness ── */
+        .unit-item { display: flex; flex-direction: column; gap: 6px; }
+
+        .unit-header { display: flex; justify-content: space-between; align-items: center; }
+        .unit-name   { font-size: 13px; font-weight: 500; }
+        .unit-pct    { font-size: 13px; font-weight: 700; }
+
+        .progress-bar {
+            height: 6px; background: var(--bg-secondary);
+            border-radius: 3px; overflow: hidden;
+        }
+
+        .progress-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+        /* ── Badges ── */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px; border-radius: 12px;
+            font-size: 11px; font-weight: 600;
+        }
+
+        .badge-critical   { background:rgba(220,53,69,.15);  color:#f87171; border:1px solid rgba(220,53,69,.3); }
+        .badge-high       { background:rgba(253,126,20,.15); color:#fb923c; border:1px solid rgba(253,126,20,.3); }
+        .badge-normal     { background:rgba(26,115,232,.15); color:#60a5fa; border:1px solid rgba(26,115,232,.3); }
+        .badge-low        { background:rgba(92,103,132,.15); color:var(--text-muted); border:1px solid var(--border); }
+
+        .badge-open       { background:rgba(26,115,232,.12);  color:#60a5fa; border:1px solid rgba(26,115,232,.25); }
+        .badge-in-progress{ background:rgba(253,193,7,.12);   color:#fbbf24; border:1px solid rgba(253,193,7,.25); }
+        .badge-done       { background:rgba(40,167,69,.12);   color:#4ade80; border:1px solid rgba(40,167,69,.25); }
+
+        .badge-available  { background:rgba(40,167,69,.12);   color:#4ade80; border:1px solid rgba(40,167,69,.25); }
+        .badge-field      { background:rgba(253,126,20,.12);  color:#fb923c; border:1px solid rgba(253,126,20,.25); }
+        .badge-leave      { background:rgba(92,103,132,.12);  color:var(--text-muted); border:1px solid var(--border); }
+        .badge-reserves   { background:rgba(111,66,193,.12);  color:#a78bfa; border:1px solid rgba(111,66,193,.25); }
+        .badge-unavailable{ background:rgba(220,53,69,.12);   color:#f87171; border:1px solid rgba(220,53,69,.25); }
+
+        .badge-meeting    { background:rgba(26,115,232,.12);  color:#60a5fa; border:1px solid rgba(26,115,232,.25); }
+        .badge-training   { background:rgba(40,167,69,.12);   color:#4ade80; border:1px solid rgba(40,167,69,.25); }
+        .badge-visit      { background:rgba(253,126,20,.12);  color:#fb923c; border:1px solid rgba(253,126,20,.25); }
+        .badge-operation  { background:rgba(220,53,69,.12);   color:#f87171; border:1px solid rgba(220,53,69,.25); }
+        .badge-admin      { background:rgba(111,66,193,.12);  color:#a78bfa; border:1px solid rgba(111,66,193,.25); }
+
+        .badge-operational   { background:rgba(220,53,69,.12);  color:#f87171; border:1px solid rgba(220,53,69,.25); }
+        .badge-training-cat  { background:rgba(40,167,69,.12);  color:#4ade80; border:1px solid rgba(40,167,69,.25); }
+        .badge-admin-cat     { background:rgba(111,66,193,.12); color:#a78bfa; border:1px solid rgba(111,66,193,.25); }
+        .badge-logistics     { background:rgba(253,193,7,.12);  color:#fbbf24; border:1px solid rgba(253,193,7,.25); }
+
+        /* ── Alert badge ── */
+        .alert-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+        }
+
+        .alert-badge.urgent {
+            background: rgba(220,53,69,.15); color: var(--accent-red);
+            border: 1px solid rgba(220,53,69,.3);
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 18px; border-radius: var(--radius-sm);
+            border: none; cursor: pointer;
+            font-size: 14px; font-weight: 600; font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .btn-primary  { background: var(--accent-blue); color: #fff; }
+        .btn-primary:hover  { background: #1557c0; }
+        .btn-secondary{ background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-secondary:hover{ background: var(--bg-card-hover); }
+        .btn-danger   { background:rgba(220,53,69,.12); color: var(--accent-red); border:1px solid rgba(220,53,69,.3); }
+        .btn-danger:hover{ background:rgba(220,53,69,.22); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        /* ── Filters ── */
+        .filters-bar {
+            display: flex; gap: 8px;
+            margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+        }
+
+        .filter-chip {
+            padding: 6px 14px; border-radius: 20px;
+            border: 1px solid var(--border); background: var(--bg-card);
+            color: var(--text-secondary); font-size: 13px;
+            cursor: pointer; transition: all 0.2s; font-family: inherit;
+        }
+
+        .filter-chip:hover, .filter-chip.active {
+            background: rgba(26,115,232,.15);
+            color: var(--accent-blue-light);
+            border-color: rgba(26,115,232,.4);
+        }
+
+        .filter-search {
+            flex: 1; max-width: 280px;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 13px; font-family: inherit; direction: rtl;
+        }
+
+        .filter-search:focus { outline: none; border-color: var(--accent-blue); }
+        .filter-search::placeholder { color: var(--text-muted); }
+
+        /* ── Table ── */
+        .data-table { width: 100%; border-collapse: collapse; }
+
+        .data-table th {
+            padding: 12px 16px; text-align: right;
+            font-size: 11px; font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 12px 16px; font-size: 14px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+        }
+
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: rgba(255,255,255,.02); }
+
+        .actions { display: flex; gap: 6px; }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,.72); z-index: 1000;
+            align-items: center; justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px; width: 100%; max-width: 520px;
+            max-height: 90vh; overflow-y: auto; direction: rtl;
+        }
+
+        .modal-title {
+            font-size: 18px; font-weight: 700;
+            margin-bottom: 20px; padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── Form ── */
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block; font-size: 13px; font-weight: 600;
+            color: var(--text-secondary); margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%; padding: 10px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 14px; font-family: inherit; direction: rtl;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus { outline: none; border-color: var(--accent-blue); }
+
+        select.form-control option { background: var(--bg-secondary); color: var(--text-primary); }
+        textarea.form-control { resize: vertical; min-height: 80px; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .modal-footer {
+            display: flex; gap: 10px;
+            justify-content: flex-start;
+            margin-top: 20px; padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ── Schedule ── */
+        .schedule-week {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            gap: 8px; margin-bottom: 20px;
+        }
+
+        .week-day {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 8px; min-height: 130px;
+            cursor: pointer; transition: border-color 0.2s;
+        }
+
+        .week-day:hover { border-color: rgba(26,115,232,.5); }
+        .week-day.today { border-color: var(--accent-blue); background: rgba(26,115,232,.05); }
+
+        .week-day-header { text-align: center; margin-bottom: 8px; }
+        .week-day-name   { font-size: 11px; color: var(--text-secondary); display: block; }
+        .week-day-num    { font-size: 18px; font-weight: 700; }
+        .week-day.today .week-day-num { color: var(--accent-blue-light); }
+
+        .week-event {
+            font-size: 10px; padding: 2px 5px;
+            border-radius: 3px; margin-bottom: 3px;
+            overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+        }
+
+        .week-event.meeting   { background:rgba(26,115,232,.22); color:#60a5fa; }
+        .week-event.training  { background:rgba(40,167,69,.22);  color:#4ade80; }
+        .week-event.visit     { background:rgba(253,126,20,.22); color:#fb923c; }
+        .week-event.operation { background:rgba(220,53,69,.22);  color:#f87171; }
+        .week-event.admin     { background:rgba(111,66,193,.22); color:#a78bfa; }
+
+        /* ── Personnel cards ── */
+        .personnel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .personnel-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .personnel-card:hover { transform: translateY(-2px); }
+
+        .personnel-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+
+        .personnel-avatar {
+            width: 46px; height: 46px; border-radius: 50%;
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 700; flex-shrink: 0;
+            color: #fff;
+        }
+
+        .personnel-name { font-size: 15px; font-weight: 700; }
+        .personnel-rank { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+        .personnel-details {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 6px; margin-bottom: 14px;
+        }
+
+        .personnel-detail { font-size: 12px; color: var(--text-secondary); }
+        .personnel-detail span { color: var(--text-primary); font-weight: 500; }
+
+        .personnel-footer { display: flex; justify-content: space-between; align-items: center; }
+
+        /* ── Reports ── */
+        .report-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 20px;
+        }
+
+        .report-text {
+            font-family: 'Courier New', monospace;
+            font-size: 13px; color: var(--text-primary);
+            white-space: pre-wrap; line-height: 1.9; direction: rtl;
+        }
+
+        /* ── Bottom nav (mobile) ── */
+        .bottom-nav {
+            display: none; position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: var(--nav-height);
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            z-index: 100;
+        }
+
+        .bottom-nav-inner {
+            display: flex; height: 100%;
+            align-items: center; justify-content: space-around;
+        }
+
+        .bottom-nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            padding: 8px 12px; cursor: pointer;
+            color: var(--text-muted); font-size: 10px;
+            transition: color 0.2s; border: none;
+            background: transparent; font-family: inherit; flex: 1;
+        }
+
+        .bottom-nav-item.active { color: var(--accent-blue-light); }
+        .bottom-nav-item .nav-icon { font-size: 20px; }
+
+        /* ── Mobile header ── */
+        .mobile-header {
+            display: none; position: fixed;
+            top: 0; left: 0; right: 0;
+            height: var(--header-height);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            z-index: 100; padding: 0 20px;
+            align-items: center; justify-content: space-between;
+        }
+
+        .mobile-header-title { font-size: 16px; font-weight: 700; }
+
+        /* ── Responsive ── */
+        @media (max-width: 1100px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .dash-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar      { display: none; }
+            .bottom-nav   { display: flex; }
+            .mobile-header{ display: flex; }
+            .main-content {
+                margin-right: 0; padding: 16px;
+                padding-top: calc(var(--header-height) + 16px);
+                padding-bottom: calc(var(--nav-height) + 16px);
+            }
+            .schedule-week { grid-template-columns: repeat(3, 1fr); }
+            .personnel-grid{ grid-template-columns: 1fr; }
+            .form-row      { grid-template-columns: 1fr; }
+            .data-table th:nth-child(n+4),
+            .data-table td:nth-child(n+4) { display: none; }
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track  { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ── Utilities ── */
+        .text-center { text-align: center; }
+        .text-muted  { color: var(--text-muted); font-size: 13px; }
+        .flex        { display: flex; }
+        .flex-between{ display: flex; justify-content: space-between; align-items: center; }
+        .gap-8       { gap: 8px; }
+        .mb-16       { margin-bottom: 16px; }
+
+        .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+        .empty-state-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+
+        .status-high   { color: var(--accent-green); }
+        .status-medium { color: var(--accent-orange); }
+        .status-low    { color: var(--accent-red); }
+
+        @keyframes pulse {
+            0%,100% { opacity: 1; }
+            50%      { opacity: 0.4; }
+        }
+
+        .pulse { animation: pulse 2s infinite; }
+
+        .current-time {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 12px; color: var(--text-muted);
+        }
+
+        .time-dot {
+            width: 6px; height: 6px;
+            background: var(--accent-green); border-radius: 50%;
+        }
+
+        /* inline select styling */
+        .inline-select {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 6px; padding: 4px 8px;
+            font-size: 12px; font-family: inherit; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Mobile header -->
+<header class="mobile-header">
+    <span class="mobile-header-title">🦅 מח"ט גבעתי</span>
+    <div class="current-time">
+        <div class="time-dot pulse"></div>
+        <span id="clockMobile"></span>
+    </div>
+</header>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">🦅</div>
+        <div class="sidebar-logo-text">
+            <h1>מח"ט גבעתי</h1>
+            <p>מערכת ניהול רלש</p>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <button class="nav-item active" onclick="showSection('dashboard')"><span class="nav-icon">📊</span>לוח בקרה</button>
+        <button class="nav-item" onclick="showSection('tasks')"><span class="nav-icon">✅</span>משימות</button>
+        <button class="nav-item" onclick="showSection('schedule')"><span class="nav-icon">📅</span>לוח זמנים</button>
+        <button class="nav-item" onclick="showSection('personnel')"><span class="nav-icon">👥</span>כוח אדם</button>
+        <button class="nav-item" onclick="showSection('reports')"><span class="nav-icon">📋</span>דיווחים</button>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="current-time">
+            <div class="time-dot pulse"></div>
+            <span id="clock"></span>
+        </div>
+        <div style="margin-top:6px;font-size:11px;">גרסה 1.0 · לשימוש פנימי</div>
+    </div>
+</aside>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+        <button class="bottom-nav-item active" onclick="showSection('dashboard')"><span class="nav-icon">📊</span>בקרה</button>
+        <button class="bottom-nav-item" onclick="showSection('tasks')"><span class="nav-icon">✅</span>משימות</button>
+        <button class="bottom-nav-item" onclick="showSection('schedule')"><span class="nav-icon">📅</span>לוח זמנים</button>
+        <button class="bottom-nav-item" onclick="showSection('personnel')"><span class="nav-icon">👥</span>כוח אדם</button>
+        <button class="bottom-nav-item" onclick="showSection('reports')"><span class="nav-icon">📋</span>דיווחים</button>
+    </div>
+</nav>
+
+<main class="main-content">
+
+    <!-- ══════════════ DASHBOARD ══════════════ -->
+    <section id="section-dashboard" class="section active">
+        <div class="page-header">
+            <div>
+                <div class="page-title">לוח בקרה</div>
+                <div class="page-subtitle" id="dashDate">טוען...</div>
+            </div>
+            <span class="alert-badge urgent pulse" id="alertBadge" style="display:none">
+                ⚠️ <span id="alertCount">0</span> התראות קריטיות
+            </span>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card blue">
+                <div class="kpi-label">משימות פתוחות</div>
+                <div class="kpi-value" id="kpiOpen">—</div>
+                <div class="kpi-sub" id="kpiOpenSub">—</div>
+                <div class="kpi-icon">✅</div>
+            </div>
+            <div class="kpi-card red">
+                <div class="kpi-label">משימות קריטיות</div>
+                <div class="kpi-value" id="kpiCritical">—</div>
+                <div class="kpi-sub">דורשות טיפול מיידי</div>
+                <div class="kpi-icon">🚨</div>
+            </div>
+            <div class="kpi-card orange">
+                <div class="kpi-label">אירועים היום</div>
+                <div class="kpi-value" id="kpiToday">—</div>
+                <div class="kpi-sub" id="kpiWeek">—</div>
+                <div class="kpi-icon">📅</div>
+            </div>
+            <div class="kpi-card green">
+                <div class="kpi-label">כוח אדם זמין</div>
+                <div class="kpi-value" id="kpiAvail">—</div>
+                <div class="kpi-sub" id="kpiAvailSub">—</div>
+                <div class="kpi-icon">👥</div>
+            </div>
+        </div>
+
+        <div class="dash-grid">
+            <div class="card">
+                <div class="card-title">⏱ סדר יום — <span id="todayLabel"></span></div>
+                <div id="dashTimeline" class="timeline"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">🔥 משימות דחופות</div>
+                <div id="dashUrgent" class="task-list"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🎯 קריאות יחידות</div>
+            <div id="unitGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px;"></div>
+        </div>
+    </section>
+
+    <!-- ══════════════ TASKS ══════════════ -->
+    <section id="section-tasks" class="section">
+        <div class="page-header">
+            <div>
+                <div class="page-title">ניהול משימות</div>
+                <div class="page-subtitle">מעקב וניהול כלל המשימות הפעילות</div>
+            </div>
+            <button class="btn btn-primary" onclick="openTaskModal()">＋ משימה חדשה</button>
+        </div>
+
+        <div class="filters-bar">
+            <input type="text" class="filter-search" placeholder="🔍 חיפוש..." id="taskSearch" oninput="renderTasks()">
+            <button class="filter-chip active" data-tf="all"          onclick="setTF('all',this)">הכל</button>
+            <button class="filter-chip"        data-tf="critical"     onclick="setTF('critical',this)">קריטי</button>
+            <button class="filter-chip"        data-tf="high"         onclick="setTF('high',this)">גבוה</button>
+            <button class="filter-chip"        data-tf="open"         onclick="setTF('open',this)">פתוח</button>
+            <button class="filter-chip"        data-tf="in-progress"  onclick="setTF('in-progress',this)">בביצוע</button>
+            <button class="filter-chip"        data-tf="operational"  onclick="setTF('operational',this)">מבצעי</button>
+            <button class="filter-chip"        data-tf="training"     onclick="setTF('training',this)">אימוני</button>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>כותרת</th>
+                        <th>מבצע / יחידה</th>
+                        <th>קטגוריה</th>
+                        <th>עדיפות</th>
+                        <th>יעד</th>
+                        <th>סטטוס</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tasksTbody"></tbody>
+            </table>
+            <div id="tasksEmpty" class="empty-state" style="display:none">
+                <div class="empty-state-icon">✅</div>
+                <div>אין משימות להצגה</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════ SCHEDULE ══════════════ -->
+    <section id="section-schedule" class="section">
+        <div class="page-header">
+            <div>
+                <div class="page-title">לוח זמנים</div>
+                <div class="page-subtitle" id="weekLabel">שבוע נוכחי</div>
+            </div>
+            <div class="flex gap-8">
+                <button class="btn btn-secondary btn-sm" onclick="prevWeek()">→ שבוע קודם</button>
+                <button class="btn btn-secondary btn-sm" onclick="nextWeek()">שבוע הבא ←</button>
+                <button class="btn btn-primary" onclick="openEventModal()">＋ אירוע</button>
+            </div>
+        </div>
+
+        <div class="schedule-week" id="schedWeek"></div>
+
+        <div class="card">
+            <div class="card-title">📋 אירועי השבוע</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>אירוע</th>
+                        <th>סוג</th>
+                        <th>תאריך ושעה</th>
+                        <th>מיקום</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="schedTbody"></tbody>
+            </table>
+            <div id="schedEmpty" class="empty-state" style="display:none">
+                <div class="empty-state-icon">📅</div><div>אין אירועים השבוע</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════ PERSONNEL ══════════════ -->
+    <section id="section-personnel" class="section">
+        <div class="page-header">
+            <div>
+                <div class="page-title">כוח אדם</div>
+                <div class="page-subtitle">ניהול קצינים ומ"כים</div>
+            </div>
+            <button class="btn btn-primary" onclick="openPersonnelModal()">＋ הוסף איש</button>
+        </div>
+
+        <div class="filters-bar">
+            <input type="text" class="filter-search" placeholder="🔍 חיפוש לפי שם / יחידה..." id="persSearch" oninput="renderPersonnel()">
+            <button class="filter-chip active" data-pf="all"       onclick="setPF('all',this)">הכל</button>
+            <button class="filter-chip"        data-pf="available" onclick="setPF('available',this)">זמין</button>
+            <button class="filter-chip"        data-pf="field"     onclick="setPF('field',this)">בשטח</button>
+            <button class="filter-chip"        data-pf="leave"     onclick="setPF('leave',this)">חופשה</button>
+        </div>
+
+        <div class="personnel-grid" id="persGrid"></div>
+        <div id="persEmpty" class="empty-state" style="display:none">
+            <div class="empty-state-icon">👥</div><div>אין אנשי כוח אדם להצגה</div>
+        </div>
+    </section>
+
+    <!-- ══════════════ REPORTS ══════════════ -->
+    <section id="section-reports" class="section">
+        <div class="page-header">
+            <div>
+                <div class="page-title">דיווחים</div>
+                <div class="page-subtitle">יצירה וייצוא דיווחים מבצעיים</div>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:24px">
+            <button class="card" style="cursor:pointer;text-align:right;border:none;width:100%;transition:transform .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''" onclick="genReport('daily')">
+                <div style="font-size:28px;margin-bottom:8px">📝</div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">דיווח יומי</div>
+                <div class="text-muted">סיכום יומי של אירועים ומשימות</div>
+            </button>
+            <button class="card" style="cursor:pointer;text-align:right;border:none;width:100%;transition:transform .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''" onclick="genReport('personnel')">
+                <div style="font-size:28px;margin-bottom:8px">👥</div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">דיווח כוח אדם</div>
+                <div class="text-muted">סטטוס זמינות כלל הכוח</div>
+            </button>
+            <button class="card" style="cursor:pointer;text-align:right;border:none;width:100%;transition:transform .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''" onclick="genReport('readiness')">
+                <div style="font-size:28px;margin-bottom:8px">🎯</div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">דיווח קריאות</div>
+                <div class="text-muted">מצב קריאות לפי יחידה</div>
+            </button>
+            <button class="card" style="cursor:pointer;text-align:right;border:none;width:100%;transition:transform .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''" onclick="genReport('tasks')">
+                <div style="font-size:28px;margin-bottom:8px">✅</div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">דיווח משימות</div>
+                <div class="text-muted">מצב כלל המשימות הפתוחות</div>
+            </button>
+        </div>
+
+        <div id="reportOut" style="display:none">
+            <div class="flex-between mb-16">
+                <div class="card-title" id="reportTitle" style="margin-bottom:0">דיווח</div>
+                <div class="flex gap-8">
+                    <button class="btn btn-secondary btn-sm" onclick="copyReport()">📋 העתק</button>
+                    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('reportOut').style.display='none'">✕</button>
+                </div>
+            </div>
+            <div class="report-box"><div class="report-text" id="reportContent"></div></div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ══════════════ TASK MODAL ══════════════ -->
+<div class="modal-overlay" id="taskModal">
+    <div class="modal">
+        <div class="modal-title" id="taskModalTitle">משימה חדשה</div>
+        <input type="hidden" id="taskEditId">
+        <div class="form-group">
+            <label class="form-label">כותרת משימה *</label>
+            <input type="text" class="form-control" id="taskTitle" placeholder="הזן כותרת...">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">מבצע</label>
+                <input type="text" class="form-control" id="taskAssignee" placeholder="שם המבצע">
+            </div>
+            <div class="form-group">
+                <label class="form-label">יחידה</label>
+                <select class="form-control" id="taskUnit">
+                    <option value="">— בחר —</option>
+                    <option>מטה מח"ט</option>
+                    <option>גדוד 51</option>
+                    <option>גדוד 13</option>
+                    <option>גדוד 432</option>
+                    <option>פלוגת סיור</option>
+                    <option>יחידת הנדסה</option>
+                    <option>לוגיסטיקה</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">עדיפות</label>
+                <select class="form-control" id="taskPriority">
+                    <option value="critical">קריטי 🔴</option>
+                    <option value="high">גבוה 🟠</option>
+                    <option value="normal" selected>רגיל 🔵</option>
+                    <option value="low">נמוך ⚪</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">קטגוריה</label>
+                <select class="form-control" id="taskCategory">
+                    <option value="operational">מבצעי</option>
+                    <option value="training">אימוני</option>
+                    <option value="admin">מנהלתי</option>
+                    <option value="logistics">לוגיסטי</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">תאריך יעד</label>
+                <input type="date" class="form-control" id="taskDue">
+            </div>
+            <div class="form-group">
+                <label class="form-label">סטטוס</label>
+                <select class="form-control" id="taskStatus">
+                    <option value="open">פתוח</option>
+                    <option value="in-progress">בביצוע</option>
+                    <option value="done">הושלם</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">הערות</label>
+            <textarea class="form-control" id="taskNotes" placeholder="פרטים נוספים..."></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="saveTask()">💾 שמור</button>
+            <button class="btn btn-secondary" onclick="closeModal('taskModal')">ביטול</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════ EVENT MODAL ══════════════ -->
+<div class="modal-overlay" id="eventModal">
+    <div class="modal">
+        <div class="modal-title" id="eventModalTitle">אירוע חדש</div>
+        <input type="hidden" id="eventEditId">
+        <div class="form-group">
+            <label class="form-label">שם האירוע *</label>
+            <input type="text" class="form-control" id="eventTitle" placeholder="הזן שם...">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">סוג</label>
+                <select class="form-control" id="eventType">
+                    <option value="meeting">פגישה</option>
+                    <option value="training">אימון</option>
+                    <option value="visit">ביקור מפקד</option>
+                    <option value="operation">מבצע</option>
+                    <option value="admin">אדמיניסטרציה</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">מיקום</label>
+                <input type="text" class="form-control" id="eventLoc" placeholder="מיקום">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">התחלה</label>
+                <input type="datetime-local" class="form-control" id="eventStart">
+            </div>
+            <div class="form-group">
+                <label class="form-label">סיום</label>
+                <input type="datetime-local" class="form-control" id="eventEnd">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">משתתפים</label>
+            <input type="text" class="form-control" id="eventPart" placeholder="שמות, מופרדים בפסיקות">
+        </div>
+        <div class="form-group">
+            <label class="form-label">הערות</label>
+            <textarea class="form-control" id="eventNotes" placeholder="פרטים נוספים..."></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="saveEvent()">💾 שמור</button>
+            <button class="btn btn-secondary" onclick="closeModal('eventModal')">ביטול</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════ PERSONNEL MODAL ══════════════ -->
+<div class="modal-overlay" id="persModal">
+    <div class="modal">
+        <div class="modal-title" id="persModalTitle">הוסף איש כוח אדם</div>
+        <input type="hidden" id="persEditId">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">שם מלא *</label>
+                <input type="text" class="form-control" id="persName" placeholder="שם פרטי ומשפחה">
+            </div>
+            <div class="form-group">
+                <label class="form-label">דרגה</label>
+                <select class="form-control" id="persRank">
+                    <option>טוראי</option><option>רב"ט</option><option>סמל</option>
+                    <option>סמל ראשון</option><option>רס"ל</option><option>רס"ר</option>
+                    <option>סגן</option><option>סגן ראשון</option><option>סרן</option>
+                    <option>רס"ן</option><option>סא"ל</option><option>אל"מ</option><option>תא"ל</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">תפקיד</label>
+                <input type="text" class="form-control" id="persRole" placeholder="תפקיד">
+            </div>
+            <div class="form-group">
+                <label class="form-label">יחידה</label>
+                <select class="form-control" id="persUnit">
+                    <option>מטה מח"ט</option>
+                    <option>גדוד 51</option><option>גדוד 13</option><option>גדוד 432</option>
+                    <option>פלוגת סיור</option><option>יחידת הנדסה</option><option>לוגיסטיקה</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">זמינות</label>
+                <select class="form-control" id="persAvail">
+                    <option value="available">זמין</option>
+                    <option value="field">בשטח</option>
+                    <option value="leave">חופשה</option>
+                    <option value="reserves">מילואים</option>
+                    <option value="unavailable">לא זמין</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">טלפון</label>
+                <input type="tel" class="form-control" id="persPhone" placeholder="05X-XXXXXXX">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">הערות</label>
+            <textarea class="form-control" id="persNotes" placeholder="הערות נוספות..."></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="savePers()">💾 שמור</button>
+            <button class="btn btn-secondary" onclick="closeModal('persModal')">ביטול</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ────────────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────────────
+const S = { tasks: [], events: [], personnel: [], units: [], weekOffset: 0 };
+let taskFilter = 'all';
+let persFilter = 'all';
+
+// ────────────────────────────────────────────────
+// PERSISTENCE
+// ────────────────────────────────────────────────
+function save() {
+    localStorage.setItem('gv_tasks', JSON.stringify(S.tasks));
+    localStorage.setItem('gv_events', JSON.stringify(S.events));
+    localStorage.setItem('gv_personnel', JSON.stringify(S.personnel));
+    localStorage.setItem('gv_units', JSON.stringify(S.units));
+}
+
+function load() {
+    const t = localStorage.getItem('gv_tasks');
+    const e = localStorage.getItem('gv_events');
+    const p = localStorage.getItem('gv_personnel');
+    const u = localStorage.getItem('gv_units');
+    if (t) S.tasks     = JSON.parse(t);
+    if (e) S.events    = JSON.parse(e);
+    if (p) S.personnel = JSON.parse(p);
+    if (u) S.units     = JSON.parse(u);
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+// ────────────────────────────────────────────────
+// SEED DATA
+// ────────────────────────────────────────────────
+function seed() {
+    const now   = new Date();
+    const d0    = (n) => { const d = new Date(now); d.setDate(d.getDate() + n); return d; };
+    const ymd   = (d) => d.toISOString().slice(0, 10);
+    const dtStr = (d, h) => { const x = new Date(d); x.setHours(h, 0, 0, 0); return x.toISOString().slice(0, 16); };
+
+    S.units = [
+        { id: uid(), name: 'מטה מח"ט',      readiness: 92, cmd: 'אל"מ כהן',   size: 45 },
+        { id: uid(), name: 'גדוד 51',        readiness: 85, cmd: 'רס"ן לוי',   size: 320 },
+        { id: uid(), name: 'גדוד 13',        readiness: 78, cmd: 'רס"ן ברק',   size: 290 },
+        { id: uid(), name: 'גדוד 432',       readiness: 94, cmd: 'רס"ן שמיר',  size: 305 },
+        { id: uid(), name: 'פלוגת סיור',     readiness: 88, cmd: 'סרן כץ',     size: 80 },
+        { id: uid(), name: 'יחידת הנדסה',   readiness: 71, cmd: 'סרן נחום',    size: 60 },
+    ];
+
+    S.tasks = [
+        { id: uid(), title: 'הכנת תדריך בטיחות שבועי',        assignee: 'סא"ל ישראלי', unit: 'מטה מח"ט',    priority: 'critical', category: 'admin',       dueDate: ymd(now),     status: 'open',        notes: 'לכלול עדכוני נהלים' },
+        { id: uid(), title: 'תרגיל לילה — גדוד 51',           assignee: 'רס"ן לוי',    unit: 'גדוד 51',     priority: 'high',     category: 'training',    dueDate: ymd(d0(2)),   status: 'in-progress', notes: 'תיאום עם ח"א על שטח' },
+        { id: uid(), title: 'עדכון מלאי תחמושת',              assignee: 'סגן הרוש',    unit: 'לוגיסטיקה',   priority: 'critical', category: 'logistics',   dueDate: ymd(d0(1)),   status: 'open',        notes: 'לעבור על כל הגדודים' },
+        { id: uid(), title: 'ביקורת תחמושת — גדוד 13',        assignee: 'רס"ן ברק',    unit: 'גדוד 13',     priority: 'high',     category: 'operational', dueDate: ymd(d0(3)),   status: 'open',        notes: '' },
+        { id: uid(), title: 'הגשת דו"ח כשירות רפואית',        assignee: 'סרן מדיק',    unit: 'מטה מח"ט',    priority: 'normal',   category: 'admin',       dueDate: ymd(d0(5)),   status: 'in-progress', notes: 'נתוני כלל הגדודים' },
+        { id: uid(), title: 'עדכון הוראות מבצעיות',           assignee: 'סא"ל ישראלי', unit: 'מטה מח"ט',    priority: 'high',     category: 'operational', dueDate: ymd(d0(7)),   status: 'open',        notes: '' },
+        { id: uid(), title: 'תיאום תחבורה לביקור',            assignee: 'סגן ציקל',    unit: 'לוגיסטיקה',   priority: 'normal',   category: 'logistics',   dueDate: ymd(d0(1)),   status: 'open',        notes: 'כלי רכב + מאבטחים' },
+        { id: uid(), title: 'אימון קרב מגע — גדוד 432',       assignee: 'סרן שטרן',    unit: 'גדוד 432',    priority: 'low',      category: 'training',    dueDate: ymd(d0(10)),  status: 'open',        notes: '' },
+    ];
+
+    const ev = (title, type, day, h, loc, part = '') => ({
+        id: uid(), title, type, location: loc,
+        startDateTime: dtStr(d0(day), h),
+        endDateTime:   dtStr(d0(day), h + 1),
+        participants: part, notes: ''
+    });
+
+    S.events = [
+        ev('פגישת הפיקוד השבועית',         'meeting',   0, 8,  'חדר פיקוד מח"ט',   'מח"ט, סגן מח"ט, רלש, ס"אמ'),
+        ev('תדריך בטיחות — גדוד 51',        'training',  0, 11, 'גדוד 51 — חדר מצב', 'רס"ן לוי, סרן מורן'),
+        ev('ביקור תא"ל פיקוד',             'visit',     1, 10, 'מפקדת מח"ט',        'כלל הגדודים'),
+        ev('תרגיל לילה — גדוד 51',          'training',  1, 22, 'שטח אימון צפון',     'גדוד 51 מלא'),
+        ev('ישיבת לוגיסטיקה',              'meeting',   2, 9,  'חדר קצינים',         'קצינות לוגיסטיקה'),
+        ev('בחינת כשירות נהגים',            'admin',     2, 14, 'מחנה',               'כלל הנהגים'),
+        ev('תרגיל פינוי רפואי',             'training',  3, 7,  'שטח B',              'גדוד 432, מדיק'),
+        ev('עדכון הוראות מבצעיות',          'operation', 3, 15, 'חדר פיקוד',          'קצינים בכירים'),
+        ev('ישיבת מפקדים',                 'meeting',   4, 8,  'חדר פיקוד מח"ט',    'כלל המפקדים'),
+        ev('יום גיבוש — גדוד 13',           'training',  5, 9,  'שטח פנוי',           'גדוד 13 מלא'),
+    ];
+
+    S.personnel = [
+        { id: uid(), name: 'בנימין כהן',   rank: 'אל"מ', role: 'מח"ט',             unit: 'מטה מח"ט',    availability: 'available', phone: '050-1234567', notes: '' },
+        { id: uid(), name: 'גדי ישראלי',   rank: 'סא"ל', role: 'סגן מח"ט',         unit: 'מטה מח"ט',    availability: 'available', phone: '050-2345678', notes: '' },
+        { id: uid(), name: 'שחר ממן',      rank: 'רס"ן', role: 'רלש',              unit: 'מטה מח"ט',    availability: 'available', phone: '050-3456789', notes: 'ראש לשכה' },
+        { id: uid(), name: 'אורי לוי',     rank: 'רס"ן', role: 'מ"פ גדוד 51',      unit: 'גדוד 51',     availability: 'field',     phone: '050-4567890', notes: 'בשטח — תרגיל לילה' },
+        { id: uid(), name: 'יוני ברק',     rank: 'רס"ן', role: 'מ"פ גדוד 13',      unit: 'גדוד 13',     availability: 'available', phone: '050-5678901', notes: '' },
+        { id: uid(), name: 'נתן שמיר',     rank: 'רס"ן', role: 'מ"פ גדוד 432',     unit: 'גדוד 432',    availability: 'available', phone: '050-6789012', notes: '' },
+        { id: uid(), name: 'אלי כץ',       rank: 'סרן',  role: 'מ"פ סיור',         unit: 'פלוגת סיור',  availability: 'field',     phone: '050-7890123', notes: 'בסיור' },
+        { id: uid(), name: 'רונן נחום',    rank: 'סרן',  role: 'קצין הנדסה',        unit: 'יחידת הנדסה', availability: 'leave',     phone: '050-8901234', notes: 'חופשה עד ה-20' },
+        { id: uid(), name: 'דנה הרוש',     rank: 'סגן',  role: 'קצינת לוגיסטיקה',  unit: 'לוגיסטיקה',   availability: 'available', phone: '050-9012345', notes: '' },
+        { id: uid(), name: 'יוסי שטרן',    rank: 'סרן',  role: 'קצין מבצעים',       unit: 'גדוד 432',    availability: 'available', phone: '050-0123456', notes: '' },
+        { id: uid(), name: 'מיכל ציקל',    rank: 'סגן',  role: 'קצינת תחבורה',     unit: 'לוגיסטיקה',   availability: 'available', phone: '052-1122334', notes: '' },
+        { id: uid(), name: 'אמיר מורן',    rank: 'סרן',  role: 'קצין אימון',        unit: 'גדוד 51',     availability: 'reserves',  phone: '052-2233445', notes: 'מילואים' },
+    ];
+
+    save();
+}
+
+// ────────────────────────────────────────────────
+// CLOCK
+// ────────────────────────────────────────────────
+function tick() {
+    const s = new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    ['clock', 'clockMobile'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = s; });
+}
+setInterval(tick, 1000); tick();
+
+// ────────────────────────────────────────────────
+// HELPERS
+// ────────────────────────────────────────────────
+const DAYS   = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+const fmtDate = d => `${d.getDate()} ב${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+const fmtTime = d => d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+const PRIO_LABEL   = { critical: 'קריטי', high: 'גבוה', normal: 'רגיל', low: 'נמוך' };
+const STATUS_LABEL = { open: 'פתוח', 'in-progress': 'בביצוע', done: 'הושלם' };
+const CAT_LABEL    = { operational: 'מבצעי', training: 'אימוני', admin: 'מנהלתי', logistics: 'לוגיסטי' };
+const TYPE_LABEL   = { meeting: 'פגישה', training: 'אימון', visit: 'ביקור מפקד', operation: 'מבצע', admin: 'אדמיניסטרציה' };
+const AVAIL_LABEL  = { available: 'זמין', field: 'בשטח', leave: 'חופשה', reserves: 'מילואים', unavailable: 'לא זמין' };
+
+const CAT_BADGE  = { operational: 'badge-operational', training: 'badge-training-cat', admin: 'badge-admin-cat', logistics: 'badge-logistics' };
+const TYPE_BADGE = { meeting: 'badge-meeting', training: 'badge-training', visit: 'badge-visit', operation: 'badge-operation', admin: 'badge-admin' };
+const AVAIL_BADGE= { available: 'badge-available', field: 'badge-field', leave: 'badge-leave', reserves: 'badge-reserves', unavailable: 'badge-unavailable' };
+
+function weekStart(offset = 0) {
+    const d = new Date();
+    d.setDate(d.getDate() - d.getDay() + offset * 7);
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+function rcColor(pct) {
+    return pct >= 85 ? 'var(--accent-green)' : pct >= 65 ? 'var(--accent-orange)' : 'var(--accent-red)';
+}
+
+// ────────────────────────────────────────────────
+// NAVIGATION
+// ────────────────────────────────────────────────
+function showSection(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('section-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll(`[onclick="showSection('${name}')"]`).forEach(b => b.classList.add('active'));
+    if (name === 'dashboard') renderDash();
+    if (name === 'tasks')     renderTasks();
+    if (name === 'schedule')  renderSched();
+    if (name === 'personnel') renderPersonnel();
+    if (name === 'reports')   document.getElementById('reportOut').style.display = 'none';
+}
+
+// ────────────────────────────────────────────────
+// DASHBOARD
+// ────────────────────────────────────────────────
+function renderDash() {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+
+    document.getElementById('dashDate').textContent = `יום ${DAYS[today.getDay()]}, ${fmtDate(today)}`;
+    document.getElementById('todayLabel').textContent = `${today.getDate()}/${today.getMonth() + 1}`;
+
+    const open     = S.tasks.filter(t => t.status !== 'done');
+    const crit     = S.tasks.filter(t => t.priority === 'critical' && t.status !== 'done');
+    const todayEv  = S.events.filter(e => sameDay(new Date(e.startDateTime), today));
+    const ws       = weekStart(S.weekOffset);
+    const we       = new Date(ws); we.setDate(we.getDate() + 7);
+    const weekEv   = S.events.filter(e => { const d = new Date(e.startDateTime); return d >= ws && d < we; });
+    const avail    = S.personnel.filter(p => p.availability === 'available');
+
+    document.getElementById('kpiOpen').textContent    = open.length;
+    document.getElementById('kpiOpenSub').textContent = `מתוכן ${crit.length} קריטיות`;
+    document.getElementById('kpiCritical').textContent= crit.length;
+    document.getElementById('kpiToday').textContent   = todayEv.length;
+    document.getElementById('kpiWeek').textContent    = `${weekEv.length} אירועים השבוע`;
+    document.getElementById('kpiAvail').textContent   = avail.length;
+    document.getElementById('kpiAvailSub').textContent= `מתוך ${S.personnel.length} סה"כ`;
+
+    const ab = document.getElementById('alertBadge');
+    document.getElementById('alertCount').textContent = crit.length;
+    ab.style.display = crit.length > 0 ? 'inline-flex' : 'none';
+
+    // Timeline
+    const tl = document.getElementById('dashTimeline');
+    const sorted = [...todayEv].sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
+    tl.innerHTML = sorted.length === 0
+        ? '<div class="text-muted" style="padding:20px 0;text-align:center">אין אירועים היום</div>'
+        : sorted.map(e => `
+            <div class="timeline-item">
+                <div class="timeline-time">${fmtTime(new Date(e.startDateTime))}</div>
+                <div class="timeline-dot ${e.type}"></div>
+                <div>
+                    <div class="timeline-title">${e.title}</div>
+                    <div class="timeline-meta">${e.location || ''}</div>
+                </div>
+            </div>`).join('');
+
+    // Urgent tasks
+    const urg = S.tasks
+        .filter(t => (t.priority === 'critical' || t.priority === 'high') && t.status !== 'done')
+        .sort((a, b) => (a.dueDate || '') < (b.dueDate || '') ? -1 : 1)
+        .slice(0, 6);
+    document.getElementById('dashUrgent').innerHTML = urg.length === 0
+        ? '<div class="text-muted" style="padding:20px 0;text-align:center">אין משימות דחופות 🎉</div>'
+        : urg.map(t => `
+            <div class="task-item">
+                <div class="task-dot ${t.priority}"></div>
+                <div class="task-item-title">${t.title}</div>
+                <div class="task-item-due">${t.dueDate || ''}</div>
+            </div>`).join('');
+
+    // Unit readiness
+    document.getElementById('unitGrid').innerHTML = S.units.map(u => `
+        <div class="unit-item">
+            <div class="unit-header">
+                <div class="unit-name">${u.name}</div>
+                <div class="unit-pct" style="color:${rcColor(u.readiness)}">${u.readiness}%</div>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">${u.cmd} · ${u.size} חיילים</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width:${u.readiness}%;background:${rcColor(u.readiness)}"></div>
+            </div>
+        </div>`).join('');
+}
+
+// ────────────────────────────────────────────────
+// TASKS
+// ────────────────────────────────────────────────
+function setTF(f, btn) {
+    taskFilter = f;
+    document.querySelectorAll('.filter-chip[data-tf]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTasks();
+}
+
+function renderTasks() {
+    const q = (document.getElementById('taskSearch')?.value || '').toLowerCase();
+    const pOrder = { critical: 0, high: 1, normal: 2, low: 3 };
+
+    let list = [...S.tasks];
+    if (taskFilter === 'critical')    list = list.filter(t => t.priority === 'critical');
+    else if (taskFilter === 'high')   list = list.filter(t => t.priority === 'high');
+    else if (taskFilter === 'open')   list = list.filter(t => t.status === 'open');
+    else if (taskFilter === 'in-progress') list = list.filter(t => t.status === 'in-progress');
+    else if (taskFilter === 'operational') list = list.filter(t => t.category === 'operational');
+    else if (taskFilter === 'training')    list = list.filter(t => t.category === 'training');
+
+    if (q) list = list.filter(t =>
+        t.title.toLowerCase().includes(q) ||
+        (t.assignee || '').toLowerCase().includes(q) ||
+        (t.unit || '').toLowerCase().includes(q));
+
+    list.sort((a, b) => (pOrder[a.priority] - pOrder[b.priority]) || ((a.dueDate || '') < (b.dueDate || '') ? -1 : 1));
+
+    const tb = document.getElementById('tasksTbody');
+    const em = document.getElementById('tasksEmpty');
+
+    if (list.length === 0) { tb.innerHTML = ''; em.style.display = 'block'; return; }
+    em.style.display = 'none';
+
+    tb.innerHTML = list.map(t => `
+        <tr>
+            <td>
+                <strong>${t.title}</strong>
+                ${t.notes ? `<br><small class="text-muted">${t.notes.slice(0,55)}${t.notes.length > 55 ? '...' : ''}</small>` : ''}
+            </td>
+            <td>${t.assignee || '—'}<br><small class="text-muted">${t.unit || ''}</small></td>
+            <td><span class="badge ${CAT_BADGE[t.category] || 'badge-normal'}">${CAT_LABEL[t.category] || t.category}</span></td>
+            <td><span class="badge badge-${t.priority}">${PRIO_LABEL[t.priority]}</span></td>
+            <td>${t.dueDate || '—'}</td>
+            <td>
+                <select class="inline-select" onchange="changeTaskStatus('${t.id}', this.value)">
+                    <option value="open"        ${t.status === 'open'        ? 'selected' : ''}>פתוח</option>
+                    <option value="in-progress" ${t.status === 'in-progress' ? 'selected' : ''}>בביצוע</option>
+                    <option value="done"        ${t.status === 'done'        ? 'selected' : ''}>הושלם</option>
+                </select>
+            </td>
+            <td>
+                <div class="actions">
+                    <button class="btn btn-secondary btn-sm" onclick="openTaskModal('${t.id}')">✏️</button>
+                    <button class="btn btn-danger btn-sm"    onclick="delTask('${t.id}')">🗑</button>
+                </div>
+            </td>
+        </tr>`).join('');
+}
+
+function changeTaskStatus(id, status) {
+    const t = S.tasks.find(t => t.id === id);
+    if (t) { t.status = status; save(); renderDash(); }
+}
+
+function openTaskModal(id = null) {
+    const isEdit = !!id;
+    document.getElementById('taskEditId').value  = id || '';
+    document.getElementById('taskModalTitle').textContent = isEdit ? 'עריכת משימה' : 'משימה חדשה';
+
+    const t = isEdit ? S.tasks.find(t => t.id === id) : null;
+    document.getElementById('taskTitle').value    = t?.title     || '';
+    document.getElementById('taskAssignee').value = t?.assignee  || '';
+    document.getElementById('taskUnit').value     = t?.unit      || '';
+    document.getElementById('taskPriority').value = t?.priority  || 'normal';
+    document.getElementById('taskCategory').value = t?.category  || 'operational';
+    document.getElementById('taskDue').value      = t?.dueDate   || '';
+    document.getElementById('taskStatus').value   = t?.status    || 'open';
+    document.getElementById('taskNotes').value    = t?.notes     || '';
+
+    document.getElementById('taskModal').classList.add('open');
+    document.getElementById('taskTitle').focus();
+}
+
+function saveTask() {
+    const title = document.getElementById('taskTitle').value.trim();
+    if (!title) { alert('נא להזין כותרת'); return; }
+
+    const id   = document.getElementById('taskEditId').value;
+    const data = {
+        title,
+        assignee: document.getElementById('taskAssignee').value.trim(),
+        unit:     document.getElementById('taskUnit').value,
+        priority: document.getElementById('taskPriority').value,
+        category: document.getElementById('taskCategory').value,
+        dueDate:  document.getElementById('taskDue').value,
+        status:   document.getElementById('taskStatus').value,
+        notes:    document.getElementById('taskNotes').value.trim(),
+    };
+
+    if (id) {
+        const i = S.tasks.findIndex(t => t.id === id);
+        if (i !== -1) S.tasks[i] = { ...S.tasks[i], ...data };
+    } else {
+        S.tasks.push({ id: uid(), ...data, createdAt: new Date().toISOString() });
+    }
+
+    save(); closeModal('taskModal'); renderTasks(); renderDash();
+}
+
+function delTask(id) {
+    if (!confirm('למחוק משימה זו?')) return;
+    S.tasks = S.tasks.filter(t => t.id !== id);
+    save(); renderTasks(); renderDash();
+}
+
+// ────────────────────────────────────────────────
+// SCHEDULE
+// ────────────────────────────────────────────────
+function prevWeek() { S.weekOffset--; renderSched(); }
+function nextWeek() { S.weekOffset++; renderSched(); }
+
+function renderSched() {
+    const ws = weekStart(S.weekOffset);
+    const we = new Date(ws); we.setDate(we.getDate() + 7);
+    const we6 = new Date(ws); we6.setDate(we6.getDate() + 6);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+
+    document.getElementById('weekLabel').textContent =
+        `${ws.getDate()}/${ws.getMonth()+1} — ${we6.getDate()}/${we6.getMonth()+1}/${we6.getFullYear()}`;
+
+    const inWeek = S.events.filter(e => {
+        const d = new Date(e.startDateTime); return d >= ws && d < we;
+    });
+
+    // Week grid
+    const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(ws); d.setDate(d.getDate() + i); return d; });
+    document.getElementById('schedWeek').innerHTML = days.map(d => {
+        const isToday = sameDay(d, today);
+        const dayEv = inWeek.filter(e => sameDay(new Date(e.startDateTime), d))
+            .sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
+        return `
+        <div class="week-day ${isToday ? 'today' : ''}">
+            <div class="week-day-header">
+                <span class="week-day-name">יום ${DAYS[d.getDay()]}</span>
+                <span class="week-day-num">${d.getDate()}</span>
+            </div>
+            ${dayEv.map(e => `
+                <div class="week-event ${e.type}" title="${e.title}" onclick="openEventModal('${e.id}')">
+                    ${fmtTime(new Date(e.startDateTime))} ${e.title}
+                </div>`).join('')}
+        </div>`;
+    }).join('');
+
+    // Table
+    const tb = document.getElementById('schedTbody');
+    const em = document.getElementById('schedEmpty');
+    const sorted = [...inWeek].sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
+
+    if (sorted.length === 0) { tb.innerHTML = ''; em.style.display = 'block'; return; }
+    em.style.display = 'none';
+
+    tb.innerHTML = sorted.map(e => {
+        const s = new Date(e.startDateTime);
+        return `
+        <tr>
+            <td><strong>${e.title}</strong>${e.participants ? `<br><small class="text-muted">${e.participants}</small>` : ''}</td>
+            <td><span class="badge ${TYPE_BADGE[e.type] || 'badge-normal'}">${TYPE_LABEL[e.type] || e.type}</span></td>
+            <td>יום ${DAYS[s.getDay()]} ${s.getDate()}/${s.getMonth()+1} ${fmtTime(s)}</td>
+            <td>${e.location || '—'}</td>
+            <td>
+                <div class="actions">
+                    <button class="btn btn-secondary btn-sm" onclick="openEventModal('${e.id}')">✏️</button>
+                    <button class="btn btn-danger btn-sm"    onclick="delEvent('${e.id}')">🗑</button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function openEventModal(id = null) {
+    const isEdit = !!id;
+    document.getElementById('eventEditId').value = id || '';
+    document.getElementById('eventModalTitle').textContent = isEdit ? 'עריכת אירוע' : 'אירוע חדש';
+
+    const e = isEdit ? S.events.find(e => e.id === id) : null;
+    document.getElementById('eventTitle').value = e?.title       || '';
+    document.getElementById('eventType').value  = e?.type        || 'meeting';
+    document.getElementById('eventLoc').value   = e?.location    || '';
+    document.getElementById('eventPart').value  = e?.participants|| '';
+    document.getElementById('eventNotes').value = e?.notes       || '';
+
+    if (e) {
+        document.getElementById('eventStart').value = e.startDateTime;
+        document.getElementById('eventEnd').value   = e.endDateTime;
+    } else {
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const dt  = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:00`;
+        document.getElementById('eventStart').value = dt;
+        document.getElementById('eventEnd').value   = dt;
+    }
+
+    document.getElementById('eventModal').classList.add('open');
+}
+
+function saveEvent() {
+    const title = document.getElementById('eventTitle').value.trim();
+    if (!title) { alert('נא להזין שם אירוע'); return; }
+
+    const id   = document.getElementById('eventEditId').value;
+    const data = {
+        title,
+        type:          document.getElementById('eventType').value,
+        location:      document.getElementById('eventLoc').value.trim(),
+        startDateTime: document.getElementById('eventStart').value,
+        endDateTime:   document.getElementById('eventEnd').value,
+        participants:  document.getElementById('eventPart').value.trim(),
+        notes:         document.getElementById('eventNotes').value.trim(),
+    };
+
+    if (id) {
+        const i = S.events.findIndex(e => e.id === id);
+        if (i !== -1) S.events[i] = { ...S.events[i], ...data };
+    } else {
+        S.events.push({ id: uid(), ...data });
+    }
+
+    save(); closeModal('eventModal'); renderSched(); renderDash();
+}
+
+function delEvent(id) {
+    if (!confirm('למחוק אירוע זה?')) return;
+    S.events = S.events.filter(e => e.id !== id);
+    save(); renderSched(); renderDash();
+}
+
+// ────────────────────────────────────────────────
+// PERSONNEL
+// ────────────────────────────────────────────────
+function setPF(f, btn) {
+    persFilter = f;
+    document.querySelectorAll('.filter-chip[data-pf]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderPersonnel();
+}
+
+function renderPersonnel() {
+    const q = (document.getElementById('persSearch')?.value || '').toLowerCase();
+    let list = [...S.personnel];
+    if (persFilter !== 'all') list = list.filter(p => p.availability === persFilter);
+    if (q) list = list.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        (p.unit || '').toLowerCase().includes(q) ||
+        (p.role || '').toLowerCase().includes(q));
+
+    const grid = document.getElementById('persGrid');
+    const em   = document.getElementById('persEmpty');
+
+    if (list.length === 0) { grid.innerHTML = ''; em.style.display = 'block'; return; }
+    em.style.display = 'none';
+
+    const initials = n => n.split(' ').map(w => w[0]).join('').slice(0, 2);
+
+    grid.innerHTML = list.map(p => `
+        <div class="personnel-card">
+            <div class="personnel-header">
+                <div class="personnel-avatar">${initials(p.name)}</div>
+                <div>
+                    <div class="personnel-name">${p.name}</div>
+                    <div class="personnel-rank">${p.rank} | ${p.role}</div>
+                </div>
+            </div>
+            <div class="personnel-details">
+                <div class="personnel-detail">יחידה: <span>${p.unit}</span></div>
+                <div class="personnel-detail">טלפון: <span>${p.phone || '—'}</span></div>
+                ${p.notes ? `<div class="personnel-detail" style="grid-column:1/-1">הערה: <span>${p.notes}</span></div>` : ''}
+            </div>
+            <div class="personnel-footer">
+                <span class="badge ${AVAIL_BADGE[p.availability] || 'badge-normal'}">${AVAIL_LABEL[p.availability] || p.availability}</span>
+                <div class="actions">
+                    <select class="inline-select" onchange="changeAvail('${p.id}', this.value)">
+                        <option value="available"   ${p.availability==='available'   ? 'selected':''}>זמין</option>
+                        <option value="field"       ${p.availability==='field'       ? 'selected':''}>בשטח</option>
+                        <option value="leave"       ${p.availability==='leave'       ? 'selected':''}>חופשה</option>
+                        <option value="reserves"    ${p.availability==='reserves'    ? 'selected':''}>מילואים</option>
+                        <option value="unavailable" ${p.availability==='unavailable' ? 'selected':''}>לא זמין</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm" onclick="openPersonnelModal('${p.id}')">✏️</button>
+                    <button class="btn btn-danger btn-sm"    onclick="delPers('${p.id}')">🗑</button>
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+function changeAvail(id, availability) {
+    const p = S.personnel.find(p => p.id === id);
+    if (p) { p.availability = availability; save(); renderPersonnel(); renderDash(); }
+}
+
+function openPersonnelModal(id = null) {
+    const isEdit = !!id;
+    document.getElementById('persEditId').value = id || '';
+    document.getElementById('persModalTitle').textContent = isEdit ? 'עריכת איש כוח אדם' : 'הוסף איש כוח אדם';
+
+    const p = isEdit ? S.personnel.find(p => p.id === id) : null;
+    document.getElementById('persName').value  = p?.name         || '';
+    document.getElementById('persRank').value  = p?.rank         || 'סרן';
+    document.getElementById('persRole').value  = p?.role         || '';
+    document.getElementById('persUnit').value  = p?.unit         || 'מטה מח"ט';
+    document.getElementById('persAvail').value = p?.availability || 'available';
+    document.getElementById('persPhone').value = p?.phone        || '';
+    document.getElementById('persNotes').value = p?.notes        || '';
+
+    document.getElementById('persModal').classList.add('open');
+}
+
+function savePers() {
+    const name = document.getElementById('persName').value.trim();
+    if (!name) { alert('נא להזין שם'); return; }
+
+    const id   = document.getElementById('persEditId').value;
+    const data = {
+        name,
+        rank:         document.getElementById('persRank').value,
+        role:         document.getElementById('persRole').value.trim(),
+        unit:         document.getElementById('persUnit').value,
+        availability: document.getElementById('persAvail').value,
+        phone:        document.getElementById('persPhone').value.trim(),
+        notes:        document.getElementById('persNotes').value.trim(),
+    };
+
+    if (id) {
+        const i = S.personnel.findIndex(p => p.id === id);
+        if (i !== -1) S.personnel[i] = { ...S.personnel[i], ...data };
+    } else {
+        S.personnel.push({ id: uid(), ...data });
+    }
+
+    save(); closeModal('persModal'); renderPersonnel(); renderDash();
+}
+
+function delPers(id) {
+    if (!confirm('למחוק איש זה?')) return;
+    S.personnel = S.personnel.filter(p => p.id !== id);
+    save(); renderPersonnel(); renderDash();
+}
+
+// ────────────────────────────────────────────────
+// REPORTS
+// ────────────────────────────────────────────────
+function genReport(type) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayStr = fmtDate(today);
+    let title = '', content = '';
+
+    if (type === 'daily') {
+        title = `📝 דיווח יומי — ${todayStr}`;
+        const ev   = S.events.filter(e => sameDay(new Date(e.startDateTime), today)).sort((a,b)=>new Date(a.startDateTime)-new Date(b.startDateTime));
+        const due  = S.tasks.filter(t => t.dueDate === today.toISOString().slice(0,10) && t.status !== 'done');
+        const crit = S.tasks.filter(t => t.priority === 'critical' && t.status !== 'done');
+
+        content  = `דיווח יומי — מח"ט גבעתי\nתאריך: ${todayStr}\n${'═'.repeat(38)}\n\n`;
+        content += `📅 אירועים היום (${ev.length}):\n`;
+        ev.length ? ev.forEach(e => { content += `  • ${fmtTime(new Date(e.startDateTime))} — ${e.title}`; if (e.location) content += ` (${e.location})`; content += '\n'; }) : (content += '  אין אירועים מתוכננים\n');
+        content += `\n⚠️ משימות לסיום היום (${due.length}):\n`;
+        due.length ? due.forEach(t => { content += `  • [${PRIO_LABEL[t.priority]}] ${t.title} — ${t.assignee || '—'}\n`; }) : (content += '  אין\n');
+        content += `\n🔴 משימות קריטיות פתוחות (${crit.length}):\n`;
+        crit.length ? crit.forEach(t => { content += `  🔴 ${t.title} — ${t.assignee || '—'} | יעד: ${t.dueDate || 'לא נקבע'}\n`; }) : (content += '  אין\n');
+    }
+
+    else if (type === 'personnel') {
+        title = `👥 דיווח כוח אדם — ${todayStr}`;
+        const grp = {};
+        S.personnel.forEach(p => { (grp[p.unit] = grp[p.unit] || []).push(p); });
+        const total = S.personnel.length;
+        const avail = S.personnel.filter(p => p.availability === 'available').length;
+
+        content  = `דיווח כוח אדם — מח"ט גבעתי\nתאריך: ${todayStr}\n${'═'.repeat(38)}\n\n`;
+        content += `סה"כ כוח אדם: ${total} | זמינים: ${avail} | לא זמינים: ${total - avail}\n\n`;
+        Object.entries(grp).forEach(([unit, ppl]) => {
+            content += `📌 ${unit}:\n`;
+            ppl.forEach(p => { content += `  ${p.rank} ${p.name} — ${p.role} — ${AVAIL_LABEL[p.availability]}`; if (p.notes) content += ` (${p.notes})`; content += '\n'; });
+            content += '\n';
+        });
+    }
+
+    else if (type === 'readiness') {
+        title = `🎯 דיווח קריאות — ${todayStr}`;
+        content  = `דיווח קריאות — מח"ט גבעתי\nתאריך: ${todayStr}\n${'═'.repeat(38)}\n\n`;
+        S.units.forEach(u => {
+            const bar   = '█'.repeat(Math.floor(u.readiness/10)) + '░'.repeat(10 - Math.floor(u.readiness/10));
+            const emoji = u.readiness >= 85 ? '✅' : u.readiness >= 65 ? '⚠️' : '🔴';
+            content += `${emoji} ${u.name.padEnd(16)} ${bar} ${u.readiness}%\n   מ"פ: ${u.cmd} | ${u.size} חיילים\n\n`;
+        });
+        const avg = Math.round(S.units.reduce((s, u) => s + u.readiness, 0) / S.units.length);
+        content += `${'═'.repeat(38)}\nממוצע קריאות מח"ט: ${avg}%\n`;
+    }
+
+    else if (type === 'tasks') {
+        title = `✅ דיווח משימות — ${todayStr}`;
+        const open   = S.tasks.filter(t => t.status === 'open');
+        const inProg = S.tasks.filter(t => t.status === 'in-progress');
+        const done   = S.tasks.filter(t => t.status === 'done');
+        const crit   = S.tasks.filter(t => t.priority === 'critical' && t.status !== 'done');
+
+        content  = `דיווח משימות — מח"ט גבעתי\nתאריך: ${todayStr}\n${'═'.repeat(38)}\n\n`;
+        content += `📊 סטטוס: פתוחות: ${open.length} | בביצוע: ${inProg.length} | הושלמו: ${done.length}\n`;
+        content += `⚠️ קריטיות פתוחות: ${crit.length}\n\n`;
+        if (crit.length) { content += `🔴 קריטיות דחופות:\n`; crit.forEach(t => { content += `  • ${t.title} | ${t.assignee || '—'} | יעד: ${t.dueDate || 'לא נקבע'}\n`; }); content += '\n'; }
+        content += `📋 כל המשימות הפתוחות:\n`;
+        [...open, ...inProg].sort((a,b)=>(a.dueDate||'')<(b.dueDate||'')?-1:1).forEach(t => {
+            content += `  [${PRIO_LABEL[t.priority]}] ${t.title}\n    מבצע: ${t.assignee||'—'} | יחידה: ${t.unit||'—'} | יעד: ${t.dueDate||'—'} | ${STATUS_LABEL[t.status]}\n`;
+        });
+    }
+
+    document.getElementById('reportTitle').textContent = title;
+    document.getElementById('reportContent').textContent = content;
+    document.getElementById('reportOut').style.display = 'block';
+    document.getElementById('reportOut').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyReport() {
+    const text = document.getElementById('reportContent').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = event.currentTarget;
+        btn.textContent = '✓ הועתק!';
+        setTimeout(() => { btn.textContent = '📋 העתק'; }, 2000);
+    });
+}
+
+// ────────────────────────────────────────────────
+// MODAL UTILS
+// ────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(o =>
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape')
+        document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+});
+
+// ────────────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────────────
+load();
+if (!S.tasks.length && !S.events.length && !S.personnel.length) seed();
+renderDash();
+</script>
+</body>
+</html>
